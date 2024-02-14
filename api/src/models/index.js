@@ -3,6 +3,7 @@
 require('dotenv').config()
 const fs = require('fs')
 const Sequelize = require('sequelize')
+const Prisma = require('@prisma/client')
 const process = require('process')
 const path = require('path')
 const basename = path.basename(__filename)

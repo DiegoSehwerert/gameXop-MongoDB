@@ -1,0 +1,859 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model admin_trackings {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  entity    String    @db.VarChar(255)
+  entityId  Int
+  action    String    @db.VarChar(255)
+  createdAt DateTime  @db.DateTime(0)
+  updatedAt DateTime  @db.DateTime(0)
+  deletedAt DateTime? @db.DateTime(0)
+  users     users     @relation(fields: [userId], references: [id], onDelete: NoAction, map: "admin_trackings_ibfk_1")
+
+  @@index([entity, entityId], map: "admin_trackings_entity_entityId_index")
+  @@index([userId], map: "admin_trackings_userId_fk")
+}
+
+model api_trackings {
+  id              Int           @id @default(autoincrement())
+  customerId      Int?
+  fingerprintId   Int?
+  ip              String        @db.VarChar(255)
+  isRobot         Boolean
+  resource        String        @db.VarChar(255)
+  resourceElement Int?
+  method          String        @db.VarChar(255)
+  httpCode        Int
+  message         String?       @db.Text
+  startTime       Float
+  endTime         Float
+  latencyMS       Float
+  createdAt       DateTime      @db.DateTime(0)
+  updatedAt       DateTime      @db.DateTime(0)
+  deletedAt       DateTime?     @db.DateTime(0)
+  customers       customers?    @relation(fields: [customerId], references: [id], onDelete: NoAction, map: "api_trackings_ibfk_1")
+  fingerprints    fingerprints? @relation(fields: [fingerprintId], references: [id], onDelete: NoAction, map: "api_trackings_ibfk_2")
+
+  @@index([customerId], map: "api_trackings_customerId_fk")
+  @@index([fingerprintId], map: "api_trackings_fingerprintId_fk")
+}
+
+model cart_details {
+  id              Int              @id @default(autoincrement())
+  cartId          Int
+  productId       Int
+  localeId        Int
+  priceId         Int
+  priceDiscountId Int?
+  taxId           Int
+  productName     String           @db.VarChar(255)
+  basePrice       Decimal          @db.Decimal(6, 2)
+  taxPrice        Decimal?         @db.Decimal(6, 2)
+  quantity        Int
+  createdAt       DateTime         @db.DateTime(0)
+  updatedAt       DateTime         @db.DateTime(0)
+  deletedAt       DateTime?        @db.DateTime(0)
+  carts           carts            @relation(fields: [cartId], references: [id], onDelete: NoAction, map: "cart_details_ibfk_1")
+  products        products         @relation(fields: [productId], references: [id], onDelete: NoAction, map: "cart_details_ibfk_2")
+  locales         locales          @relation(fields: [localeId], references: [id], onDelete: NoAction, map: "cart_details_ibfk_3")
+  prices          prices           @relation(fields: [priceId], references: [id], onDelete: NoAction, map: "cart_details_ibfk_4")
+  price_discounts price_discounts? @relation(fields: [priceDiscountId], references: [id], onDelete: NoAction, map: "cart_details_ibfk_5")
+  taxes           taxes            @relation(fields: [taxId], references: [id], onDelete: NoAction, map: "cart_details_ibfk_6")
+
+  @@index([cartId], map: "cart_details_cartId_fk")
+  @@index([localeId], map: "cart_details_localeId_fk")
+  @@index([priceDiscountId], map: "cart_details_priceDiscountId_fk")
+  @@index([priceId], map: "cart_details_priceId_fk")
+  @@index([productId], map: "cart_details_productId_fk")
+  @@index([taxId], map: "cart_details_taxId_fk")
+}
+
+model carts {
+  id            Int            @id @default(autoincrement())
+  uuid          String         @db.Char(36)
+  customerId    Int?
+  fingerprintId Int?
+  createdAt     DateTime       @db.DateTime(0)
+  updatedAt     DateTime       @db.DateTime(0)
+  deletedAt     DateTime?      @db.DateTime(0)
+  cart_details  cart_details[]
+  customers     customers?     @relation(fields: [customerId], references: [id], onDelete: NoAction, map: "carts_ibfk_1")
+  fingerprints  fingerprints?  @relation(fields: [fingerprintId], references: [id], onDelete: NoAction, map: "carts_ibfk_2")
+  sale_errors   sale_errors[]
+  sales         sales[]
+
+  @@index([customerId], map: "carts_customerId_fk")
+  @@index([fingerprintId], map: "carts_fingerprintId_fk")
+}
+
+model cities {
+  id           Int            @id @default(autoincrement())
+  countryId    Int
+  name         String         @db.VarChar(255)
+  createdAt    DateTime       @db.DateTime(0)
+  updatedAt    DateTime       @db.DateTime(0)
+  deletedAt    DateTime?      @db.DateTime(0)
+  countries    countries      @relation(fields: [countryId], references: [id], onDelete: Cascade, map: "cities_ibfk_1")
+  companies    companies[]
+  customers    customers[]
+  fingerprints fingerprints[]
+
+  @@index([countryId], map: "cities_countryId_fk")
+}
+
+model companies {
+  id               Int        @id @default(autoincrement())
+  countryId        Int
+  cityId           Int
+  dialCodeId       Int
+  fiscalName       String     @db.VarChar(255)
+  comercialName    String     @db.VarChar(255)
+  vat              String     @db.VarChar(255)
+  comercialAddress String?    @db.VarChar(255)
+  fiscalAddress    String     @db.VarChar(255)
+  postalCode       String     @db.VarChar(255)
+  email            String     @unique(map: "email") @db.VarChar(255)
+  web              String?    @db.VarChar(255)
+  telephone        String?    @db.VarChar(255)
+  createdAt        DateTime   @db.DateTime(0)
+  updatedAt        DateTime   @db.DateTime(0)
+  deletedAt        DateTime?  @db.DateTime(0)
+  countries        countries  @relation(fields: [countryId], references: [id], onDelete: NoAction, map: "companies_ibfk_1")
+  cities           cities     @relation(fields: [cityId], references: [id], onDelete: NoAction, map: "companies_ibfk_2")
+  dial_codes       dial_codes @relation(fields: [dialCodeId], references: [id], onDelete: NoAction, map: "companies_ibfk_3")
+
+  @@index([cityId], map: "companies_cityId_fk")
+  @@index([countryId], map: "companies_countryId_fk")
+  @@index([dialCodeId], map: "companies_dialCodeId_fk")
+}
+
+model contacts {
+  id            Int           @id @default(autoincrement())
+  fingerprintId Int?
+  name          String        @db.VarChar(255)
+  email         String        @db.VarChar(255)
+  subject       String        @db.VarChar(255)
+  message       String        @db.Text
+  createdAt     DateTime      @db.DateTime(0)
+  updatedAt     DateTime      @db.DateTime(0)
+  deletedAt     DateTime?     @db.DateTime(0)
+  fingerprints  fingerprints? @relation(fields: [fingerprintId], references: [id], onDelete: NoAction, map: "contacts_ibfk_1")
+
+  @@index([email], map: "contacts_email_index")
+  @@index([fingerprintId], map: "contacts_fingerprintId_fk")
+}
+
+model countries {
+  id         Int          @id @default(autoincrement())
+  name       String       @db.VarChar(255)
+  iso2       String       @db.VarChar(255)
+  iso3       String       @db.VarChar(255)
+  visible    Boolean      @default(true)
+  createdAt  DateTime     @db.DateTime(0)
+  updatedAt  DateTime     @db.DateTime(0)
+  deletedAt  DateTime?    @db.DateTime(0)
+  cities     cities[]
+  companies  companies[]
+  customers  customers[]
+  dial_codes dial_codes[]
+  taxes      taxes[]
+}
+
+model coupons {
+  id         Int       @id @default(autoincrement())
+  name       String    @db.VarChar(255)
+  code       String    @db.VarChar(255)
+  percentage Decimal?  @db.Decimal(10, 0)
+  multiplier Decimal?  @db.Decimal(10, 0)
+  startsAt   DateTime? @db.DateTime(0)
+  endsAt     DateTime? @db.DateTime(0)
+  createdAt  DateTime  @db.DateTime(0)
+  updatedAt  DateTime  @db.DateTime(0)
+  deletedAt  DateTime? @db.DateTime(0)
+  sales      sales[]
+}
+
+model customer_trackings {
+  id               Int               @id @default(autoincrement())
+  customerId       Int?
+  fingerprintId    Int?
+  localeSeoId      Int?
+  localeSeoSlugId  Int?
+  eventTime        Float?
+  eventName        String?           @db.VarChar(255)
+  path             String?           @db.VarChar(255)
+  event            String            @db.Text
+  createdAt        DateTime          @db.DateTime(0)
+  updatedAt        DateTime          @db.DateTime(0)
+  deletedAt        DateTime?         @db.DateTime(0)
+  customers        customers?        @relation(fields: [customerId], references: [id], onDelete: NoAction, map: "customer_trackings_ibfk_1")
+  fingerprints     fingerprints?     @relation(fields: [fingerprintId], references: [id], onDelete: NoAction, map: "customer_trackings_ibfk_2")
+  locale_seos      locale_seos?      @relation(fields: [localeSeoId], references: [id], onDelete: NoAction, map: "customer_trackings_ibfk_3")
+  locale_seo_slugs locale_seo_slugs? @relation(fields: [localeSeoSlugId], references: [id], onDelete: NoAction, map: "customer_trackings_ibfk_4")
+
+  @@index([customerId], map: "customer_trackings_customerId_fk")
+  @@index([fingerprintId], map: "customer_trackings_fingerprintId_fk")
+  @@index([localeSeoId], map: "customer_trackings_localeSeoId_fk")
+  @@index([localeSeoSlugId], map: "customer_trackings_localeSeoSlugId_fk")
+}
+
+model customers {
+  id                 Int                  @id @default(autoincrement())
+  countryId          Int
+  cityId             Int
+  dialCodeId         Int
+  name               String               @db.VarChar(255)
+  surname            String               @db.VarChar(255)
+  telephone          String               @db.VarChar(255)
+  email              String               @unique(map: "email") @db.VarChar(255)
+  postalCode         String               @db.VarChar(255)
+  address            String               @db.VarChar(255)
+  password           String               @db.VarChar(255)
+  createdAt          DateTime             @db.DateTime(0)
+  updatedAt          DateTime             @db.DateTime(0)
+  deletedAt          DateTime?            @db.DateTime(0)
+  api_trackings      api_trackings[]
+  carts              carts[]
+  customer_trackings customer_trackings[]
+  countries          countries            @relation(fields: [countryId], references: [id], onDelete: NoAction, map: "customers_ibfk_1")
+  cities             cities               @relation(fields: [cityId], references: [id], onDelete: NoAction, map: "customers_ibfk_2")
+  dial_codes         dial_codes           @relation(fields: [dialCodeId], references: [id], onDelete: NoAction, map: "customers_ibfk_3")
+  email_errors       email_errors[]
+  fingerprints       fingerprints[]
+  invoices           invoices[]
+  page_trackings     page_trackings[]
+  return_errors      return_errors[]
+  returns            returns[]
+  sale_errors        sale_errors[]
+  sales              sales[]
+  sent_emails        sent_emails[]
+  tickets            tickets[]
+
+  @@index([cityId], map: "customers_cityId_fk")
+  @@index([countryId], map: "customers_countryId_fk")
+  @@index([dialCodeId], map: "customers_dialCodeId_fk")
+  @@index([email], map: "customers_email_index")
+}
+
+model dial_codes {
+  id        Int         @id @default(autoincrement())
+  countryId Int
+  dialCode  String      @db.VarChar(255)
+  createdAt DateTime    @db.DateTime(0)
+  updatedAt DateTime    @db.DateTime(0)
+  deletedAt DateTime?   @db.DateTime(0)
+  companies companies[]
+  customers customers[]
+  countries countries   @relation(fields: [countryId], references: [id], onDelete: Cascade, map: "dial_codes_ibfk_1")
+
+  @@index([countryId], map: "dial_codes_countryId_fk")
+}
+
+model email_errors {
+  id         Int       @id @default(autoincrement())
+  customerId Int
+  emailId    Int
+  error      String    @db.Text
+  createdAt  DateTime  @db.DateTime(0)
+  updatedAt  DateTime  @db.DateTime(0)
+  deletedAt  DateTime? @db.DateTime(0)
+  customers  customers @relation(fields: [customerId], references: [id], onDelete: NoAction, map: "email_errors_ibfk_1")
+  emails     emails    @relation(fields: [emailId], references: [id], onDelete: NoAction, map: "email_errors_ibfk_2")
+
+  @@index([customerId], map: "customerId")
+  @@index([emailId], map: "emailId")
+}
+
+model emails {
+  id           Int            @id @default(autoincrement())
+  subject      String         @db.VarChar(255)
+  path         String         @db.VarChar(255)
+  createdAt    DateTime       @db.DateTime(0)
+  updatedAt    DateTime       @db.DateTime(0)
+  deletedAt    DateTime?      @db.DateTime(0)
+  email_errors email_errors[]
+  sent_emails  sent_emails[]
+}
+
+model faqs {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  order     Int?      @default(0)
+  createdAt DateTime  @db.DateTime(0)
+  updatedAt DateTime  @db.DateTime(0)
+  deletedAt DateTime? @db.DateTime(0)
+}
+
+model fingerprints {
+  id                 Int                  @id @default(autoincrement())
+  customerId         Int?
+  cityId             Int
+  fingerprint        String               @db.VarChar(255)
+  browser            String               @db.VarChar(255)
+  browserVersion     String               @db.VarChar(255)
+  os                 String               @db.VarChar(255)
+  osVersion          String               @db.VarChar(255)
+  screenHeight       Int
+  screenWidth        Int
+  createdAt          DateTime             @db.DateTime(0)
+  updatedAt          DateTime             @db.DateTime(0)
+  deletedAt          DateTime?            @db.DateTime(0)
+  api_trackings      api_trackings[]
+  carts              carts[]
+  contacts           contacts[]
+  customer_trackings customer_trackings[]
+  customers          customers?           @relation(fields: [customerId], references: [id], onDelete: NoAction, map: "fingerprints_ibfk_1")
+  cities             cities               @relation(fields: [cityId], references: [id], onDelete: NoAction, map: "fingerprints_ibfk_2")
+  page_trackings     page_trackings[]
+
+  @@index([cityId], map: "fingerprints_cityId_fk")
+  @@index([customerId], map: "fingerprints_customerId_fk")
+}
+
+model image_configurations {
+  id         Int       @id @default(autoincrement())
+  entity     String    @db.VarChar(255)
+  name       String    @db.VarChar(255)
+  mediaQuery String    @db.VarChar(255)
+  widthPx    Int?
+  heightPx   Int?
+  createdAt  DateTime  @db.DateTime(0)
+  updatedAt  DateTime  @db.DateTime(0)
+  deletedAt  DateTime? @db.DateTime(0)
+  images     images[]
+
+  @@index([entity, name, mediaQuery], map: "image_configurations_entity_name_mediaQuery_index")
+}
+
+model images {
+  id                   Int                  @id @default(autoincrement())
+  imageConfigurationId Int
+  entityId             Int?
+  entity               String               @db.VarChar(255)
+  name                 String?              @db.VarChar(255)
+  originalFilename     String?              @db.VarChar(255)
+  resizedFilename      String?              @db.VarChar(255)
+  title                String?              @db.VarChar(255)
+  alt                  String?              @db.VarChar(255)
+  languageAlias        String               @db.VarChar(255)
+  mediaQuery           String               @db.VarChar(255)
+  latencyMs            Int
+  createdAt            DateTime             @db.DateTime(0)
+  updatedAt            DateTime             @db.DateTime(0)
+  deletedAt            DateTime?            @db.DateTime(0)
+  image_configurations image_configurations @relation(fields: [imageConfigurationId], references: [id], onDelete: NoAction, map: "images_ibfk_1")
+
+  @@index([entityId, entity, mediaQuery], map: "images_entityId_entity_mediaQuery_index")
+  @@index([imageConfigurationId], map: "images_imageConfigurationId_fk")
+}
+
+model invoices {
+  id         Int       @id @default(autoincrement())
+  customerId Int
+  saleId     Int
+  returnId   Int?
+  reference  String    @db.VarChar(255)
+  path       String    @db.VarChar(255)
+  createdAt  DateTime  @db.DateTime(0)
+  updatedAt  DateTime  @db.DateTime(0)
+  deletedAt  DateTime? @db.DateTime(0)
+  customers  customers @relation(fields: [customerId], references: [id], onDelete: NoAction, map: "invoices_ibfk_1")
+  sales      sales     @relation(fields: [saleId], references: [id], onDelete: NoAction, map: "invoices_ibfk_2")
+  returns    returns?  @relation(fields: [returnId], references: [id], onDelete: NoAction, map: "invoices_ibfk_3")
+
+  @@index([customerId], map: "invoices_customerId_fk")
+  @@index([returnId], map: "invoices_returnId_fk")
+  @@index([saleId], map: "invoices_saleId_fk")
+}
+
+model languages {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  alias     String    @unique(map: "alias") @db.VarChar(255)
+  createdAt DateTime  @db.DateTime(0)
+  updatedAt DateTime  @db.DateTime(0)
+  deletedAt DateTime? @db.DateTime(0)
+}
+
+model locale_seo_redirects {
+  id            Int          @id @default(autoincrement())
+  localeSeoId   Int?
+  languageAlias String       @db.VarChar(255)
+  group         String?      @db.VarChar(255)
+  key           String?      @db.VarChar(255)
+  subdomain     String?      @db.VarChar(255)
+  oldUrl        String?      @db.VarChar(255)
+  createdAt     DateTime     @db.DateTime(0)
+  updatedAt     DateTime     @db.DateTime(0)
+  deletedAt     DateTime?    @db.DateTime(0)
+  locale_seos   locale_seos? @relation(fields: [localeSeoId], references: [id], onDelete: NoAction, map: "locale_seo_redirects_ibfk_1")
+
+  @@index([localeSeoId], map: "locale_seo_redirects_localeSeoId_fk")
+}
+
+model locale_seo_slug_redirects {
+  id               Int               @id @default(autoincrement())
+  localeSeoSlugId  Int?
+  languageAlias    String?           @db.VarChar(255)
+  oldUrl           String?           @db.VarChar(255)
+  createdAt        DateTime          @db.DateTime(0)
+  updatedAt        DateTime          @db.DateTime(0)
+  deletedAt        DateTime?         @db.DateTime(0)
+  locale_seo_slugs locale_seo_slugs? @relation(fields: [localeSeoSlugId], references: [id], onDelete: NoAction, map: "locale_seo_slug_redirects_ibfk_1")
+
+  @@index([localeSeoSlugId], map: "locale_seo_slug_redirects_localeSeoId_fk")
+}
+
+model locale_seo_slugs {
+  id                        Int                         @id @default(autoincrement())
+  localeSeoId               Int
+  languageAlias             String                      @db.VarChar(255)
+  relParent                 String                      @db.VarChar(255)
+  slug                      String                      @db.VarChar(255)
+  key                       Int
+  parentSlug                String?                     @db.VarChar(255)
+  title                     String                      @db.VarChar(255)
+  description               String?                     @db.VarChar(255)
+  keywords                  String?                     @db.VarChar(255)
+  createdAt                 DateTime                    @db.DateTime(0)
+  updatedAt                 DateTime                    @db.DateTime(0)
+  deletedAt                 DateTime?                   @db.DateTime(0)
+  customer_trackings        customer_trackings[]
+  locale_seo_slug_redirects locale_seo_slug_redirects[]
+  locale_seos               locale_seos                 @relation(fields: [localeSeoId], references: [id], onDelete: NoAction, map: "locale_seo_slugs_ibfk_1")
+  menu_items                menu_items[]
+  page_trackings            page_trackings[]
+
+  @@index([localeSeoId], map: "locale_seo_slugs_localeSeoId_fk")
+}
+
+model locale_seos {
+  id                   Int                    @id @default(autoincrement())
+  languageAlias        String                 @db.VarChar(255)
+  url                  String                 @db.VarChar(255)
+  title                String                 @db.VarChar(255)
+  description          String?                @db.VarChar(255)
+  redirection          Boolean?               @default(false)
+  menu                 Boolean?               @default(true)
+  changeFrequency      String?                @db.VarChar(255)
+  priority             Decimal?               @db.Decimal(10, 0)
+  sitemap              Boolean?               @default(true)
+  createdAt            DateTime               @db.DateTime(0)
+  updatedAt            DateTime               @db.DateTime(0)
+  deletedAt            DateTime?              @db.DateTime(0)
+  customer_trackings   customer_trackings[]
+  locale_seo_redirects locale_seo_redirects[]
+  locale_seo_slugs     locale_seo_slugs[]
+  menu_items           menu_items[]
+  page_trackings       page_trackings[]
+}
+
+model locales {
+  id             Int              @id @default(autoincrement())
+  languageAlias  String           @db.VarChar(255)
+  entity         String           @db.VarChar(255)
+  entityId       Int
+  key            String           @db.VarChar(255)
+  value          String?          @db.Text
+  createdAt      DateTime         @db.DateTime(0)
+  updatedAt      DateTime         @db.DateTime(0)
+  deletedAt      DateTime?        @db.DateTime(0)
+  cart_details   cart_details[]
+  return_details return_details[]
+  sale_details   sale_details[]
+
+  @@index([languageAlias, entity, entityId, key], map: "locales_languageAlias_entity_entityId_key_index")
+}
+
+model menu_items {
+  id               Int               @id @default(autoincrement())
+  menuId           Int
+  localeSeoId      Int?
+  localeSeoSlugId  Int?
+  parent           Int?
+  name             String            @db.VarChar(255)
+  description      String?           @db.VarChar(255)
+  customUrl        String?           @db.VarChar(255)
+  private          Boolean
+  order            Int?              @default(0)
+  createdAt        DateTime          @db.DateTime(0)
+  updatedAt        DateTime          @db.DateTime(0)
+  deletedAt        DateTime?         @db.DateTime(0)
+  menus            menus             @relation(fields: [menuId], references: [id], onDelete: Cascade, map: "menu_items_ibfk_1")
+  locale_seos      locale_seos?      @relation(fields: [localeSeoId], references: [id], onDelete: Cascade, map: "menu_items_ibfk_2")
+  locale_seo_slugs locale_seo_slugs? @relation(fields: [localeSeoSlugId], references: [id], onDelete: Cascade, map: "menu_items_ibfk_3")
+
+  @@index([localeSeoId], map: "menu_items_localeSeoId_fk")
+  @@index([localeSeoSlugId], map: "menu_items_localeSeoSlugId_fk")
+  @@index([menuId], map: "menu_items_menuId_fk")
+}
+
+model menus {
+  id         Int          @id @default(autoincrement())
+  name       String       @db.VarChar(255)
+  createdAt  DateTime     @db.DateTime(0)
+  updatedAt  DateTime     @db.DateTime(0)
+  deletedAt  DateTime?    @db.DateTime(0)
+  menu_items menu_items[]
+}
+
+model page_trackings {
+  id               Int               @id @default(autoincrement())
+  customerId       Int?
+  fingerprintId    Int?
+  localeSeoId      Int?
+  localeSeoSlugId  Int?
+  path             String            @db.VarChar(255)
+  ip               String            @db.VarChar(255)
+  isRobot          Boolean
+  startTime        Float
+  endTime          Float
+  latencyMS        Int
+  createdAt        DateTime          @db.DateTime(0)
+  updatedAt        DateTime          @db.DateTime(0)
+  deletedAt        DateTime?         @db.DateTime(0)
+  customers        customers?        @relation(fields: [customerId], references: [id], onDelete: NoAction, map: "page_trackings_ibfk_1")
+  fingerprints     fingerprints?     @relation(fields: [fingerprintId], references: [id], onDelete: NoAction, map: "page_trackings_ibfk_2")
+  locale_seos      locale_seos?      @relation(fields: [localeSeoId], references: [id], onDelete: NoAction, map: "page_trackings_ibfk_3")
+  locale_seo_slugs locale_seo_slugs? @relation(fields: [localeSeoSlugId], references: [id], onDelete: NoAction, map: "page_trackings_ibfk_4")
+
+  @@index([customerId], map: "page_trackings_customerId_fk")
+  @@index([fingerprintId], map: "page_trackings_fingerprintId_fk")
+  @@index([localeSeoId], map: "page_trackings_localeSeoId_fk")
+  @@index([localeSeoSlugId], map: "page_trackings_localeSeoSlugId_fk")
+}
+
+model payment_methods {
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(255)
+  configuration Json
+  visible       Boolean         @default(true)
+  createdAt     DateTime        @db.DateTime(0)
+  updatedAt     DateTime        @db.DateTime(0)
+  deletedAt     DateTime?       @db.DateTime(0)
+  return_errors return_errors[]
+  returns       returns[]
+  sale_errors   sale_errors[]
+  sales         sales[]
+}
+
+model price_discounts {
+  id             Int              @id @default(autoincrement())
+  priceId        Int
+  percentage     Decimal?         @db.Decimal(10, 0)
+  multiplier     Decimal?         @db.Decimal(10, 0)
+  current        Boolean?
+  startsAt       DateTime?        @db.DateTime(0)
+  endsAt         DateTime?        @db.DateTime(0)
+  createdAt      DateTime         @db.DateTime(0)
+  updatedAt      DateTime         @db.DateTime(0)
+  deletedAt      DateTime?        @db.DateTime(0)
+  cart_details   cart_details[]
+  prices         prices           @relation(fields: [priceId], references: [id], onDelete: NoAction, map: "price_discounts_ibfk_1")
+  return_details return_details[]
+  sale_details   sale_details[]
+
+  @@index([priceId], map: "price_discounts_priceId_fk")
+}
+
+model prices {
+  id              Int               @id @default(autoincrement())
+  productId       Int?
+  taxId           Int?
+  basePrice       Decimal?          @db.Decimal(10, 0)
+  current         Boolean?
+  createdAt       DateTime          @db.DateTime(0)
+  updatedAt       DateTime          @db.DateTime(0)
+  deletedAt       DateTime?         @db.DateTime(0)
+  cart_details    cart_details[]
+  price_discounts price_discounts[]
+  products        products?         @relation(fields: [productId], references: [id], onDelete: NoAction, map: "prices_ibfk_1")
+  taxes           taxes?            @relation(fields: [taxId], references: [id], onDelete: NoAction, map: "prices_ibfk_2")
+  return_details  return_details[]
+  sale_details    sale_details[]
+
+  @@index([productId], map: "prices_productId_fk")
+  @@index([taxId], map: "prices_taxId_fk")
+}
+
+model product_categories {
+  id                         Int                          @id @default(autoincrement())
+  name                       String                       @db.VarChar(255)
+  visible                    Boolean
+  createdAt                  DateTime                     @db.DateTime(0)
+  updatedAt                  DateTime                     @db.DateTime(0)
+  deletedAt                  DateTime?                    @db.DateTime(0)
+  product_category_relations product_category_relations[]
+}
+
+model product_category_relations {
+  id                 Int                @id @default(autoincrement())
+  productId          Int
+  productCategoryId  Int
+  createdAt          DateTime           @db.DateTime(0)
+  updatedAt          DateTime           @db.DateTime(0)
+  deletedAt          DateTime?          @db.DateTime(0)
+  products           products           @relation(fields: [productId], references: [id], onDelete: Cascade, map: "product_category_relations_ibfk_1")
+  product_categories product_categories @relation(fields: [productCategoryId], references: [id], onDelete: Cascade, map: "product_category_relations_ibfk_2")
+
+  @@index([productCategoryId], map: "product_category_relations_productCategoryId_fk")
+  @@index([productId], map: "product_category_relations_productId_fk")
+}
+
+model products {
+  id                         Int                          @id @default(autoincrement())
+  name                       String                       @db.VarChar(255)
+  featured                   Boolean?
+  visible                    Boolean?
+  createdAt                  DateTime                     @db.DateTime(0)
+  updatedAt                  DateTime                     @db.DateTime(0)
+  deletedAt                  DateTime?                    @db.DateTime(0)
+  cart_details               cart_details[]
+  prices                     prices[]
+  product_category_relations product_category_relations[]
+  return_details             return_details[]
+  sale_details               sale_details[]
+}
+
+model return_details {
+  id              Int              @id @default(autoincrement())
+  returnId        Int
+  productId       Int
+  localeId        Int
+  priceId         Int
+  taxId           Int
+  priceDiscountId Int?
+  productName     String           @db.VarChar(255)
+  basePrice       Decimal          @db.Decimal(6, 2)
+  taxPrice        Decimal          @db.Decimal(6, 2)
+  quantity        Int
+  createdAt       DateTime         @db.DateTime(0)
+  updatedAt       DateTime         @db.DateTime(0)
+  deletedAt       DateTime?        @db.DateTime(0)
+  returns         returns          @relation(fields: [returnId], references: [id], onDelete: NoAction, map: "return_details_ibfk_1")
+  products        products         @relation(fields: [productId], references: [id], onDelete: NoAction, map: "return_details_ibfk_2")
+  locales         locales          @relation(fields: [localeId], references: [id], onDelete: NoAction, map: "return_details_ibfk_3")
+  prices          prices           @relation(fields: [priceId], references: [id], onDelete: NoAction, map: "return_details_ibfk_4")
+  taxes           taxes            @relation(fields: [taxId], references: [id], onDelete: NoAction, map: "return_details_ibfk_5")
+  price_discounts price_discounts? @relation(fields: [priceDiscountId], references: [id], onDelete: NoAction, map: "return_details_ibfk_6")
+
+  @@index([localeId], map: "return_details_localeId_fk")
+  @@index([priceDiscountId], map: "return_details_priceDiscountId_fk")
+  @@index([priceId], map: "return_details_priceId_fk")
+  @@index([productId], map: "return_details_productId_fk")
+  @@index([returnId], map: "return_details_returnId_fk")
+  @@index([taxId], map: "return_details_taxId_fk")
+}
+
+model return_errors {
+  id              Int             @id @default(autoincrement())
+  customerId      Int
+  returnId        Int
+  paymentMethodId Int
+  errorCode       Int
+  errorMessage    String?         @db.VarChar(255)
+  createdAt       DateTime        @db.DateTime(0)
+  updatedAt       DateTime        @db.DateTime(0)
+  deletedAt       DateTime?       @db.DateTime(0)
+  customers       customers       @relation(fields: [customerId], references: [id], onDelete: NoAction, map: "return_errors_ibfk_1")
+  returns         returns         @relation(fields: [returnId], references: [id], onDelete: NoAction, map: "return_errors_ibfk_2")
+  payment_methods payment_methods @relation(fields: [paymentMethodId], references: [id], onDelete: NoAction, map: "return_errors_ibfk_3")
+
+  @@index([customerId], map: "return_errors_customerId_fk")
+  @@index([paymentMethodId], map: "return_errors_paymentMethodId_fk")
+  @@index([returnId], map: "return_errors_returnId_fk")
+}
+
+model returns {
+  id              Int              @id @default(autoincrement())
+  saleId          Int
+  customerId      Int
+  paymentMethodId Int
+  reference       String           @db.VarChar(255)
+  totalPrice      Decimal          @db.Decimal(10, 2)
+  totalBasePrice  Decimal          @db.Decimal(10, 2)
+  totalTaxPrice   Decimal          @db.Decimal(10, 2)
+  returnDate      DateTime         @db.Date
+  returnTime      DateTime         @db.Time(0)
+  createdAt       DateTime         @db.DateTime(0)
+  updatedAt       DateTime         @db.DateTime(0)
+  deletedAt       DateTime?        @db.DateTime(0)
+  invoices        invoices[]
+  return_details  return_details[]
+  return_errors   return_errors[]
+  sales           sales            @relation(fields: [saleId], references: [id], onDelete: NoAction, map: "returns_ibfk_1")
+  customers       customers        @relation(fields: [customerId], references: [id], onDelete: NoAction, map: "returns_ibfk_2")
+  payment_methods payment_methods  @relation(fields: [paymentMethodId], references: [id], onDelete: NoAction, map: "returns_ibfk_3")
+  tickets         tickets[]
+
+  @@index([customerId], map: "returns_customerId_fk")
+  @@index([paymentMethodId], map: "returns_paymentMethodId_fk")
+  @@index([saleId], map: "returns_saleId_fk")
+}
+
+model sale_details {
+  id              Int              @id @default(autoincrement())
+  saleId          Int
+  productId       Int
+  localeId        Int
+  priceId         Int
+  priceDiscountId Int?
+  taxId           Int
+  productName     String           @db.VarChar(255)
+  basePrice       Decimal          @db.Decimal(6, 2)
+  taxPrice        Decimal          @db.Decimal(6, 2)
+  quantity        Int
+  createdAt       DateTime         @db.DateTime(0)
+  updatedAt       DateTime         @db.DateTime(0)
+  deletedAt       DateTime?        @db.DateTime(0)
+  sales           sales            @relation(fields: [saleId], references: [id], onDelete: NoAction, map: "sale_details_ibfk_1")
+  products        products         @relation(fields: [productId], references: [id], onDelete: NoAction, map: "sale_details_ibfk_2")
+  locales         locales          @relation(fields: [localeId], references: [id], onDelete: NoAction, map: "sale_details_ibfk_3")
+  prices          prices           @relation(fields: [priceId], references: [id], onDelete: NoAction, map: "sale_details_ibfk_4")
+  price_discounts price_discounts? @relation(fields: [priceDiscountId], references: [id], onDelete: NoAction, map: "sale_details_ibfk_5")
+  taxes           taxes            @relation(fields: [taxId], references: [id], onDelete: NoAction, map: "sale_details_ibfk_6")
+
+  @@index([localeId], map: "sale_details_localeId_fk")
+  @@index([priceDiscountId], map: "sale_details_priceDiscountId_fk")
+  @@index([priceId], map: "sale_details_priceId_fk")
+  @@index([productId], map: "sale_details_productId_fk")
+  @@index([saleId], map: "sale_details_saleId_fk")
+  @@index([taxId], map: "sale_details_taxId_fk")
+}
+
+model sale_errors {
+  id              Int             @id @default(autoincrement())
+  paymentMethodId Int
+  customerId      Int
+  cartId          Int
+  errorCode       Int
+  errorMessage    String?         @db.VarChar(255)
+  createdAt       DateTime        @db.DateTime(0)
+  updatedAt       DateTime        @db.DateTime(0)
+  deletedAt       DateTime?       @db.DateTime(0)
+  payment_methods payment_methods @relation(fields: [paymentMethodId], references: [id], onDelete: NoAction, map: "sale_errors_ibfk_1")
+  customers       customers       @relation(fields: [customerId], references: [id], onDelete: NoAction, map: "sale_errors_ibfk_2")
+  carts           carts           @relation(fields: [cartId], references: [id], onDelete: NoAction, map: "sale_errors_ibfk_3")
+
+  @@index([cartId], map: "sale_errors_cartId_fk")
+  @@index([customerId], map: "sale_errors_customerId_fk")
+  @@index([paymentMethodId], map: "sale_errors_paymentMethodId_fk")
+}
+
+model sales {
+  id              Int              @id @default(autoincrement())
+  cartId          Int?
+  customerId      Int?
+  paymentMethodId Int?
+  couponId        Int?
+  reference       String           @db.VarChar(255)
+  totalPrice      Decimal          @db.Decimal(10, 2)
+  totalBasePrice  Decimal          @db.Decimal(10, 2)
+  totalTaxPrice   Decimal          @db.Decimal(10, 2)
+  saleDate        DateTime         @db.Date
+  saleTime        DateTime         @db.Time(0)
+  createdAt       DateTime         @db.DateTime(0)
+  updatedAt       DateTime         @db.DateTime(0)
+  deletedAt       DateTime?        @db.DateTime(0)
+  invoices        invoices[]
+  returns         returns[]
+  sale_details    sale_details[]
+  carts           carts?           @relation(fields: [cartId], references: [id], onDelete: NoAction, map: "sales_ibfk_1")
+  customers       customers?       @relation(fields: [customerId], references: [id], onDelete: NoAction, map: "sales_ibfk_2")
+  payment_methods payment_methods? @relation(fields: [paymentMethodId], references: [id], onDelete: NoAction, map: "sales_ibfk_3")
+  coupons         coupons?         @relation(fields: [couponId], references: [id], onDelete: NoAction, map: "sales_ibfk_4")
+  tickets         tickets[]
+
+  @@index([cartId], map: "sales_cartId_fk")
+  @@index([couponId], map: "sales_couponId_fk")
+  @@index([customerId], map: "sales_customerId_fk")
+  @@index([paymentMethodId], map: "sales_paymentMethodId_fk")
+}
+
+model sent_emails {
+  id         Int       @id @default(autoincrement())
+  customerId Int
+  emailId    Int
+  createdAt  DateTime  @db.DateTime(0)
+  updatedAt  DateTime  @db.DateTime(0)
+  deletedAt  DateTime? @db.DateTime(0)
+  customers  customers @relation(fields: [customerId], references: [id], onDelete: NoAction, map: "sent_emails_ibfk_1")
+  emails     emails    @relation(fields: [emailId], references: [id], onDelete: NoAction, map: "sent_emails_ibfk_2")
+
+  @@index([customerId], map: "email_errors_customerId_fk")
+  @@index([emailId], map: "email_errors_emailId_fk")
+  @@index([customerId], map: "sent_emails_customerId_fk")
+  @@index([emailId], map: "sent_emails_emailId_fk")
+}
+
+model sequelizemeta {
+  name String @id @unique(map: "name") @db.VarChar(255)
+}
+
+model social_networks {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  baseUrl   String    @db.VarChar(255)
+  createdAt DateTime  @db.DateTime(0)
+  updatedAt DateTime  @db.DateTime(0)
+  deletedAt DateTime? @db.DateTime(0)
+}
+
+model taxes {
+  id             Int              @id @default(autoincrement())
+  countryId      Int
+  type           String           @db.VarChar(255)
+  rate           Decimal          @db.Decimal(10, 2)
+  multiplier     Decimal          @db.Decimal(10, 2)
+  current        Boolean
+  createdAt      DateTime         @db.DateTime(0)
+  updatedAt      DateTime         @db.DateTime(0)
+  deletedAt      DateTime?        @db.DateTime(0)
+  cart_details   cart_details[]
+  prices         prices[]
+  return_details return_details[]
+  sale_details   sale_details[]
+  countries      countries        @relation(fields: [countryId], references: [id], onDelete: Cascade, map: "taxes_ibfk_1")
+
+  @@index([countryId], map: "taxes_countryId_fk")
+}
+
+model tickets {
+  id         Int       @id @default(autoincrement())
+  customerId Int
+  saleId     Int
+  returnId   Int?
+  reference  String    @db.VarChar(255)
+  path       String    @db.VarChar(255)
+  createdAt  DateTime  @db.DateTime(0)
+  updatedAt  DateTime  @db.DateTime(0)
+  deletedAt  DateTime? @db.DateTime(0)
+  customers  customers @relation(fields: [customerId], references: [id], onDelete: NoAction, map: "tickets_ibfk_1")
+  sales      sales     @relation(fields: [saleId], references: [id], onDelete: NoAction, map: "tickets_ibfk_2")
+  returns    returns?  @relation(fields: [returnId], references: [id], onDelete: NoAction, map: "tickets_ibfk_3")
+
+  @@index([customerId], map: "tickets_customerId_fk")
+  @@index([returnId], map: "tickets_returnId_fk")
+  @@index([saleId], map: "tickets_saleId_fk")
+}
+
+model users {
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(255)
+  email           String            @unique(map: "email") @db.VarChar(255)
+  password        String            @db.VarChar(255)
+  createdAt       DateTime          @db.DateTime(0)
+  updatedAt       DateTime          @db.DateTime(0)
+  deletedAt       DateTime?         @db.DateTime(0)
+  admin_trackings admin_trackings[]
+
+  @@index([email], map: "users_email_index")
+}
